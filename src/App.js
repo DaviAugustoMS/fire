@@ -5,39 +5,37 @@ export default class App extends Component{
   constructor(props){
     super(props);
     this.state = {
+      nome: '',
       email: '',
       senha: ''
     };
-    this.logar = this.logar.bind(this);
-    this.sair = this.sair.bind(this);
-
+    this.cadastrar = this.cadastrar.bind(this);
+    
+    firebase.auth().signOut();
 
     firebase.auth().onAuthStateChanged((user) => {
       if(user){
-        alert('Usuario logado com susseso!');
+
+        firebase.database().ref('usuarios').child(user.uid).set({
+          nome: this.state.nome
+        })
+        .then(() => {
+          this.setState({ nome: '', email:'', senha: ''});
+        });
       }
     })
 
   }
   
-  logar(e){
-    console.log(firebase)
-    firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.senha)
+  cadastrar(e){
+
+    firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.senha)
     .catch((error) => {
-      if(error.code === 'auth/wrong-password'){
-        alert('Senha invalido')
-      }else{
         alert('Codigo de erro:' + error.code)
-      }
     })
 
     e.preventDefault();
 
-  }
-
-  sair(){
-    firebase.auth().signOut();
-    alert('Delogadocom sucesso!')
   }
 
 
@@ -45,19 +43,22 @@ export default class App extends Component{
     return(
       <div>
         <h1>Entrar</h1>
-        <form onSubmit={this.logar}>
+        <form onSubmit={(e) => { this.cadastrar(e) }}>
+
+          <label>Nome:</label> <br/>
+          <input type="text" value={this.state.nome}
+                 onChange={(e) => this.setState({nome: e.target.value})} /> <br/>
 
           <label>Email:</label> <br/>
-          <input type="text" value={this.state.email} 
+          <input type="e-mail" value={this.state.email} 
                  onChange={(e) => this.setState({email: e.target.value})} /> <br/>
 
           <label>Senha:</label> <br/>
-          <input type="password" value={this.state.senha} 
+          <input type="text" value={this.state.senha} 
                  onChange={(e) => this.setState({senha: e.target.value})} /> <br/> <br/>
-          <button type="submit">Entrar</button>
+          <button type="submit">Cadastrar</button>
 
         </form>
-        <button onClick={this.sair}>Sair</button>
       </div>
     );
   }
